@@ -1,2 +1,2 @@
 # hdb_price_prediction
-ITI-105_ML_Project_NYP_2025
+Predicting HDB resale prices using machine learning project for ITI-105 NYP 2025
