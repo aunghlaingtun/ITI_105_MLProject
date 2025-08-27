@@ -134,7 +134,6 @@ storey_range = cat_input("Storey Range", "storey_range", get_str("storey_range",
 
 # ----------- Prediction Logic -----------
 show_row = st.checkbox("Show feature row sent to model", value=False)
-pred_val = None
 
 if st.button("Predict Price"):
     X_input = X_template.copy()
@@ -143,7 +142,6 @@ if st.button("Predict Price"):
         if col in X_input.columns:
             X_input[col] = val
 
-    # Set inputs
     for col, val in {
         "floor_area_sqm": floor_area_sqm,
         "remaining_lease_years": remaining_lease_years,
@@ -163,5 +161,4 @@ if st.button("Predict Price"):
     }.items():
         set_if_present(col, val)
 
-    X_input = X_input[required_cols]
-
+    X_input = X_input
