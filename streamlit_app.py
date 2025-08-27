@@ -13,8 +13,8 @@ st.set_page_config(page_title="HDB Price Predictor", page_icon="🏠", layout="c
 st.title("🏠 HDB Resale Price Prediction (Linear Pipeline)")
 
 # ----------- DEFAULT PATHS (ensure these exist in your repo for cloud) -----------
-DEFAULT_MODEL_PATH = "model/hdb_price_pipeline_cloud.pkl"
-DEFAULT_DATA_PATH  = "data/hdb_processed_data.csv"
+DEFAULT_MODEL_PATH = "ITI105/hdb_price_pipeline_cloud.pkl"
+DEFAULT_DATA_PATH  = "dataset/hdb_processed_data.csv"
 
 # ----------- SIDEBAR: Uploads & Metadata -----------
 st.sidebar.header("⚙️ Options")
