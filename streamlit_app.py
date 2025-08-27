@@ -1,3 +1,4 @@
+# app.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -11,9 +12,9 @@ from zoneinfo import ZoneInfo  # Python 3.9+
 st.set_page_config(page_title="HDB Price Predictor", page_icon="🏠", layout="centered")
 st.title("🏠 HDB Resale Price Prediction (Linear Pipeline)")
 
-# ----------- DEFAULT PATHS -----------
-DEFAULT_MODEL_PATH = "ITI105/hdb_price_pipeline.pkl"
-DEFAULT_DATA_PATH  = "ITI105/dataset/hdb_processed_data.csv"
+# ----------- DEFAULT PATHS (ensure these exist in your repo for cloud) -----------
+DEFAULT_MODEL_PATH = "model/hdb_price_pipeline_cloud.pkl"
+DEFAULT_DATA_PATH  = "data/hdb_processed_data.csv"
 
 # ----------- SIDEBAR: Uploads & Metadata -----------
 st.sidebar.header("⚙️ Options")
@@ -57,27 +58,40 @@ def clamp_int(val, lo, hi, fallback=None):
     return int(round(clamp(val, lo, hi, fallback)))
 
 @st.cache_resource(show_spinner=False)
-def load_model(path): return joblib.load(path)
+def load_model(path):
+    try:
+        return joblib.load(path)
+    except Exception as e:
+        st.error(f"❌ Failed to load model at {path}: {e}")
+        st.stop()
 
 @st.cache_data(show_spinner=False)
 def load_template(path):
-    df = pd.read_csv(path, nrows=1)
+    try:
+        df = pd.read_csv(path, nrows=1)
+    except Exception as e:
+        st.error(f"❌ Failed to read training CSV at {path}: {e}")
+        st.stop()
     X = df.drop(columns=["resale_price"]) if "resale_price" in df.columns else df.copy()
     return X, list(X.columns)
 
 @st.cache_data(show_spinner=False)
 def get_category_choices(path, available_cols, cols=("town","flat_type","flat_model","storey_range")):
     usecols = [c for c in cols if c in available_cols]
-    if not usecols: return {}
-    df = pd.read_csv(path, usecols=usecols)
+    if not usecols:
+        return {}
+    try:
+        df = pd.read_csv(path, usecols=usecols)
+    except Exception:
+        return {}
     return {c: sorted(df[c].dropna().astype(str).unique()) for c in df.columns}
 
 # ----------- Load Model & Template -----------
-if not os.path.exists(MODEL_PATH):
-    st.error(f"Model not found at {MODEL_PATH}")
+if not os.path.exists(MODEL_PATH) and not uploaded_model:
+    st.warning(f"📁 Model not found at `{DEFAULT_MODEL_PATH}`. Please upload a .pkl in the sidebar.")
     st.stop()
-if not os.path.exists(DATA_PATH):
-    st.error(f"Training CSV not found at {DATA_PATH}")
+if not os.path.exists(DATA_PATH) and not uploaded_data:
+    st.warning(f"📁 Training CSV not found at `{DEFAULT_DATA_PATH}`. Please upload a CSV in the sidebar.")
     st.stop()
 
 pipe = load_model(MODEL_PATH)
@@ -125,23 +139,26 @@ mid_storey_val = (min_storey + max_storey) / 2.0
 
 def cat_input(label, col_name, default):
     opts = choices.get(col_name, [])
-    return st.selectbox(label, opts) if opts else st.text_input(label, value=default)
+    # Using training choices avoids "unknown category" issues if the encoder doesn't ignore unknowns
+    return st.selectbox(label, opts, index=opts.index(default) if default in opts else 0) if opts else st.text_input(label, value=default)
 
 town         = cat_input("Town", "town", get_str("town", "ANG MO KIO"))
 flat_type    = cat_input("Flat Type", "flat_type", get_str("flat_type", "3 ROOM"))
 flat_model   = cat_input("Flat Model", "flat_model", get_str("flat_model", "Model A"))
 storey_range = cat_input("Storey Range", "storey_range", get_str("storey_range", "01 TO 03"))
 
-# ----------- Prediction Logic -----------
 show_row = st.checkbox("Show feature row sent to model", value=False)
 
+# ----------- Prediction Logic -----------
 if st.button("Predict Price"):
+    # Start with the template single row so all required columns exist
     X_input = X_template.copy()
 
     def set_if_present(col, val):
         if col in X_input.columns:
             X_input[col] = val
 
+    # Set values from UI
     for col, val in {
         "floor_area_sqm": floor_area_sqm,
         "remaining_lease_years": remaining_lease_years,
@@ -161,4 +178,55 @@ if st.button("Predict Price"):
     }.items():
         set_if_present(col, val)
 
-    X_input = X_input
+    # (Optional) numeric coercion – safe if your pipeline expects numerics
+    numeric_like = [
+        "floor_area_sqm", "remaining_lease_years", "min_storey", "max_storey", "mid_storey",
+        "latitude", "longitude", "cpi", "distance_to_mrt", "year", "month_num",
+    ]
+    for col in numeric_like:
+        if col in X_input.columns:
+            X_input[col] = pd.to_numeric(X_input[col], errors="coerce")
+
+    # Sanity check: shape 1 x n_features
+    if len(X_input) != 1:
+        X_input = X_input.iloc[:1, :]
+
+    try:
+        y_pred = float(pipe.predict(X_input)[0])
+    except Exception as e:
+        st.error("❌ Prediction failed. Common causes:\n"
+                 "- Unknown categories not seen in training (ensure your encoder uses handle_unknown='ignore').\n"
+                 "- Mismatched column names/order vs. the pipeline’s ColumnTransformer.\n"
+                 "- Missing required columns in the training CSV template.\n\n"
+                 f"Error: {e}")
+        if show_row:
+            st.subheader("Feature row (debug)")
+            st.dataframe(X_input)
+        st.stop()
+
+    st.success(f"💰 Estimated resale price: **S${y_pred:,.0f}**")
+
+    with st.expander("See prediction inputs"):
+        st.write({
+            "floor_area_sqm": floor_area_sqm,
+            "remaining_lease_years": remaining_lease_years,
+            "min_storey": min_storey,
+            "max_storey": max_storey,
+            "mid_storey": mid_storey_val,
+            "latitude": latitude,
+            "longitude": longitude,
+            "cpi": cpi,
+            "distance_to_mrt": distance_to_mrt,
+            "year": year,
+            "month_num": int(month_num),
+            "town": town,
+            "flat_type": flat_type,
+            "flat_model": flat_model,
+            "storey_range": storey_range
+        })
+
+    if show_row:
+        st.subheader("Feature row sent to model")
+        st.dataframe(X_input, use_container_width=True)
+
+st.caption(f"✅ Runtime: Python {st.__version__ and __import__('sys').version.split()[0]} · Streamlit {__import__('streamlit').__version__}")
