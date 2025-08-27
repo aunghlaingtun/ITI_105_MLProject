@@ -13,7 +13,7 @@ st.title("🏠 HDB Resale Price Prediction (Linear Pipeline)")
 
 # ----------- DEFAULT PATHS -----------
 DEFAULT_MODEL_PATH = "ITI105/hdb_price_pipeline.pkl"
-DEFAULT_DATA_PATH  = "data/hdb_processed_data.csv"
+DEFAULT_DATA_PATH  = "ITI105/dataset/hdb_processed_data.csv"
 
 # ----------- SIDEBAR: Uploads & Metadata -----------
 st.sidebar.header("⚙️ Options")
