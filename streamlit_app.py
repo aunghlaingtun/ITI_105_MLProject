@@ -10,6 +10,152 @@ from zoneinfo import ZoneInfo  # Python 3.9+
 
 # ---------------- UI SETUP ----------------
 st.set_page_config(page_title="HDB Price Predictor", page_icon="🏠", layout="centered")
+
+# Custom CSS for better night visibility
+st.markdown("""
+<style>
+    /* Main app background */
+    .stApp {
+        background-color: #0e1117;
+    }
+    
+    /* Sidebar styling */
+    .css-1d391kg {
+        background-color: #1e2130;
+    }
+    
+    /* Input fields styling */
+    .stNumberInput > div > div > input,
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div > div {
+        background-color: #2b2b2b !important;
+        color: #ffffff !important;
+        border: 1px solid #4a4a4a !important;
+        border-radius: 6px !important;
+    }
+    
+    /* Input field focus state */
+    .stNumberInput > div > div > input:focus,
+    .stTextInput > div > div > input:focus {
+        border-color: #00d4ff !important;
+        box-shadow: 0 0 0 1px #00d4ff !important;
+    }
+    
+    /* Selectbox styling */
+    .stSelectbox > div > div > div > div {
+        background-color: #2b2b2b !important;
+        color: #ffffff !important;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background-color: #00d4ff !important;
+        color: #000000 !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 1rem !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .stButton > button:hover {
+        background-color: #00b8e6 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3) !important;
+    }
+    
+    /* Success message styling */
+    .stSuccess {
+        background-color: #1a4d3a !important;
+        border: 1px solid #28a745 !important;
+        color: #ffffff !important;
+    }
+    
+    /* Error message styling */
+    .stError {
+        background-color: #4d1a1a !important;
+        border: 1px solid #dc3545 !important;
+        color: #ffffff !important;
+    }
+    
+    /* Warning message styling */
+    .stWarning {
+        background-color: #4d3d1a !important;
+        border: 1px solid #ffc107 !important;
+        color: #ffffff !important;
+    }
+    
+    /* Info message styling */
+    .stInfo {
+        background-color: #1a3d4d !important;
+        border: 1px solid #17a2b8 !important;
+        color: #ffffff !important;
+    }
+    
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        background-color: #2b2b2b !important;
+        color: #ffffff !important;
+        border: 1px solid #4a4a4a !important;
+    }
+    
+    .streamlit-expanderContent {
+        background-color: #1e1e1e !important;
+        border: 1px solid #4a4a4a !important;
+        color: #ffffff !important;
+    }
+    
+    /* Checkbox styling */
+    .stCheckbox > label {
+        color: #ffffff !important;
+    }
+    
+    /* File uploader styling */
+    .stFileUploader > div > div {
+        background-color: #2b2b2b !important;
+        border: 2px dashed #4a4a4a !important;
+        border-radius: 6px !important;
+    }
+    
+    .stFileUploader > div > div > div {
+        color: #ffffff !important;
+    }
+    
+    /* Sidebar text styling */
+    .css-1d391kg .stTextInput > label,
+    .css-1d391kg .stSelectbox > label,
+    .css-1d391kg .stFileUploader > label {
+        color: #ffffff !important;
+    }
+    
+    /* Main content labels */
+    .stNumberInput > label,
+    .stTextInput > label,
+    .stSelectbox > label {
+        color: #ffffff !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Dataframe styling */
+    .stDataFrame {
+        background-color: #1e1e1e !important;
+    }
+    
+    /* Caption styling */
+    .stCaption {
+        color: #a0a0a0 !important;
+    }
+    
+    /* Metric styling */
+    .metric-container {
+        background-color: #2b2b2b !important;
+        padding: 1rem !important;
+        border-radius: 8px !important;
+        border: 1px solid #4a4a4a !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.title("🏠 HDB Resale Price Prediction (Linear Pipeline)")
 
 # ----------- DEFAULT PATHS (ensure these exist in your repo for cloud) -----------
@@ -98,16 +244,18 @@ pipe = load_model(MODEL_PATH)
 X_template, required_cols = load_template(DATA_PATH)
 choices = get_category_choices(DATA_PATH, required_cols)
 
-# ----------- Metadata Pill -----------
+# ----------- Metadata Pill (Enhanced for night visibility) -----------
 st.markdown(
     f"""
-    <div style="padding:10px;border-radius:8px;background:#F7F9FC;border:1px solid #E6EAF2;margin-bottom:8px">
-      <strong>Name:</strong> {student_name} &nbsp;|&nbsp;
-      <strong>ID:</strong> {student_id} &nbsp;|&nbsp;
-      <strong>Course:</strong> {course} &nbsp;|&nbsp;
-      <strong>Group:</strong> {team_id} &nbsp;|&nbsp;
-      <strong>Project Date:</strong> {project_date} &nbsp;|&nbsp;
-      <strong>Inference:</strong> {inference_ts}
+    <div style="padding:12px;border-radius:8px;background:linear-gradient(135deg, #2b2b2b 0%, #3a3a3a 100%);border:1px solid #4a4a4a;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+      <div style="color:#ffffff;font-size:14px;line-height:1.6;">
+        <strong style="color:#00d4ff;">Name:</strong> <span style="color:#e0e0e0;">{student_name}</span> &nbsp;|&nbsp;
+        <strong style="color:#00d4ff;">ID:</strong> <span style="color:#e0e0e0;">{student_id}</span> &nbsp;|&nbsp;
+        <strong style="color:#00d4ff;">Course:</strong> <span style="color:#e0e0e0;">{course}</span> &nbsp;|&nbsp;
+        <strong style="color:#00d4ff;">Group:</strong> <span style="color:#e0e0e0;">{team_id}</span> &nbsp;|&nbsp;
+        <strong style="color:#00d4ff;">Project Date:</strong> <span style="color:#e0e0e0;">{project_date}</span> &nbsp;|&nbsp;
+        <strong style="color:#00d4ff;">Inference:</strong> <span style="color:#e0e0e0;">{inference_ts}</span>
+      </div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -196,7 +344,7 @@ if st.button("Predict Price"):
     except Exception as e:
         st.error("❌ Prediction failed. Common causes:\n"
                  "- Unknown categories not seen in training (ensure your encoder uses handle_unknown='ignore').\n"
-                 "- Mismatched column names/order vs. the pipeline’s ColumnTransformer.\n"
+                 "- Mismatched column names/order vs. the pipeline's ColumnTransformer.\n"
                  "- Missing required columns in the training CSV template.\n\n"
                  f"Error: {e}")
         if show_row:
@@ -204,7 +352,18 @@ if st.button("Predict Price"):
             st.dataframe(X_input)
         st.stop()
 
-    st.success(f"💰 Estimated resale price: **S${y_pred:,.0f}**")
+    # Enhanced success message with better styling
+    st.markdown(
+        f"""
+        <div style="padding:16px;border-radius:8px;background:linear-gradient(135deg, #1a4d3a 0%, #28a745 100%);border:1px solid #28a745;margin:16px 0;box-shadow:0 4px 12px rgba(40,167,69,0.3);">
+            <div style="color:#ffffff;text-align:center;">
+                <h3 style="margin:0;color:#ffffff;font-size:24px;">💰 Estimated Resale Price</h3>
+                <h2 style="margin:8px 0 0 0;color:#00ff88;font-size:32px;font-weight:bold;">S${y_pred:,.0f}</h2>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     with st.expander("See prediction inputs"):
         st.write({
@@ -230,3 +389,4 @@ if st.button("Predict Price"):
         st.dataframe(X_input, use_container_width=True)
 
 st.caption(f"✅ Runtime: Python {st.__version__ and __import__('sys').version.split()[0]} · Streamlit {__import__('streamlit').__version__}")
+
