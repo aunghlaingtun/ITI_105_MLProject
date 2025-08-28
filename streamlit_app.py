@@ -156,7 +156,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🏠 HDB Resale Price Prediction (Linear Pipeline)")
+st.title("🏠 Singapore HDB Resale Price Prediction (Linear Pipeline)")
 
 # ----------- DEFAULT PATHS (ensure these exist in your repo for cloud) -----------
 DEFAULT_MODEL_PATH = "ITI105/hdb_price_pipeline_cloud.pkl"
