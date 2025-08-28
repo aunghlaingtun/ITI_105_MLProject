@@ -170,7 +170,7 @@ uploaded_data  = st.sidebar.file_uploader("Training CSV (for feature schema)", t
 st.sidebar.header("👤 Student Metadata")
 student_name = st.sidebar.text_input("Name", value="Aung Hlaing Tun")
 student_id = st.sidebar.text_input("Student ID", value="6319250G")
-course = st.sidebar.text_input("Course", value="NYP-ITI-105 ML Project")
+course = st.sidebar.text_input("Course", value="NYP-ITI-105 Machine Learning Project")
 team_id = st.sidebar.text_input("Project Group ID", value="AlogoRiddler")
 project_date = st.sidebar.text_input("Project Date", value="25 Aug 2025")
 sg_now = datetime.now(ZoneInfo("Asia/Singapore"))
